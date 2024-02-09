@@ -1,7 +1,8 @@
 # NePSTA
 NeuroPathology Spatial Transcriptomic Analysis
 
-<img width="1585" alt="image" src="https://github.com/heilandd/NePSTA/assets/34142689/800b1380-55e6-43c3-9c2f-2cacf4cd451f">
+<img width="1583" alt="image" src="https://github.com/heilandd/NePSTA/assets/34142689/b1087fc7-1a04-4a2e-be69-8ab902c57c0d">
+
 
 Spatially resolved transcriptomics and graph-based deep-learning improve accuracy of routine CNS tumor diagnostics
 
