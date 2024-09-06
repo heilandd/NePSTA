@@ -230,4 +230,50 @@ def RunTrainingLinear(graph, hidden_channels=256, num_classes=11, epochs=50, lea
     return model
 
 
+def RunTrainingGIN(graph, hidden_channels = 256, num_classes=11, epochs = 50,learning_rate = 0.001, batch_size=32):
+
+  num_features_exp = graph[1].x.shape[1]
+
+  model = GINModelBatchesExp(num_features_exp, hidden_channels, num_classes=num_classes)
+  optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+  model.train()
+  loader = DataLoader(graph, batch_size=batch_size, shuffle=True)
+
+  criterion = torch.nn.CrossEntropyLoss()
+
+  epoch_loss_list = []
+  epoch_loss = 0
+
+  #data = next(iter(loader))
+
+  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+  print("Running on:", device)
+  model = model.to(device)
+
+
+  for epoch in tqdm(range(epochs), desc="Training"):
+    for data in loader:
+        optimizer.zero_grad()
+        latent, class_out = model(data.to(device))
+
+        #Class
+        gt = data.Class.long()
+        loss = criterion(class_out, gt)
+        loss.backward()
+        optimizer.step()
+        epoch_loss += loss.item()
+
+    epoch_loss /= len(loader)
+    epoch_loss_list.append(epoch_loss)
+
+  import matplotlib.pyplot as plt
+  plt.close()
+  plt.scatter(range(len(epoch_loss_list)), epoch_loss_list)
+  plt.show()
+  plt.close()
+
+  return(model)
+
+
 
