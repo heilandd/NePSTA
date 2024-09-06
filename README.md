@@ -13,17 +13,9 @@ Manuscript will be avaiable soon!
 
 # Graph Neural Networks: NePSTA
 
-## Data Split
-
-The graph neural network framework is part of the NePSTA project, which aims to implement deep learning strategies to explore spatially resolved multi-omics. To assess the performance of NePSTA ([GitHub – heilandd/NePSTA](https://github.com/heilandd/NePSTA)) and comparative methods, we conducted evaluations on our Visium dataset. The datasets were partitioned into training and evaluation subsets using the following procedure:
-
-### Data Split
-
-From 107 patients characterized by EPIC, each dataset was split into training and validation segments. In samples with multiple biopsies, the dataset was split by individual biopsy cores. For single-specimen datasets, we segmented the spots manually using the `createSegmentation` function from the `SPATA2` package.
-
 ### Training Dataset Construction
 
-We created the training dataset using the PyTorch Geometric library, selecting up to 500 subgraphs from the training split. Clinical attributes, such as tumor type (RTKI, RTKII, MES, etc.) and histological region, were included. This yielded a comprehensive training set of 97,000 subgraphs, including 12,000 subgraphs from healthy controls.
+We created the training dataset using the PyTorch Geometric library, selecting up to 500 subgraphs from the training split. Clinical attributes, such as tumor type (RTKI, RTKII, MES, etc.) and histological region, were included. 
 
 ### Evaluation Dataset Construction
 
