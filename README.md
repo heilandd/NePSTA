@@ -46,13 +46,13 @@ The NePSTA prediction network consists of a **Graph Isomorphism Network (GIN)** 
 
 ### Node Features
 
-- **Expression Data**: Encapsulated in an $\(N \times G\)$ matrix (where $\(N\)$ is the number of nodes and \(G\) represents the set of genes). These features are derived from the log-scaled, normalized expression values of the top 5000 most variably expressed genes in the cohort.
+- **Expression Data**: Encapsulated in an $\(N \times G\)$ matrix (where $\(N\)$ is the number of nodes and $\(G\)$ represents the set of genes). These features are derived from the log-scaled, normalized expression values of the top 5000 most variably expressed genes in the cohort.
   
-- **Copy Number Alterations**: Encapsulated in an \(N \times C\) matrix (where \(C\) contains chromosomal alterations).
+- **Copy Number Alterations**: Encapsulated in an $\(N \times C\)$ matrix (where $\(C\)$ contains chromosomal alterations).
 
-- **Histological Annotations**: Encapsulated in an \(N \times A\) matrix with one-hot encoded histological classifications.
+- **Histological Annotations**: Encapsulated in an $\(N \times A\)$ matrix with one-hot encoded histological classifications.
 
-- **H&E Images**: Encoded using a **Convolutional Neural Network (CNN)** designed to process a \(256 \times 256\) image into an \(N\)-length vector.
+- **H&E Images**: Encoded using a **Convolutional Neural Network (CNN)** designed to process a $\(256 \times 256\)$ image into an $\(N\)$-length vector.
 
 ### Edge Features
 
