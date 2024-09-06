@@ -89,22 +89,8 @@ where:
 We applied different loss strategies for individual prediction heads, which were integrated based on the task.
 
 - **Cross-Entropy Loss** for categorical variables:
-
-  $$
-  CrossEntropyLoss = -\sum_{c=1}^{M} y_{o,c} \log(p_{o,c})
-  $$
-
-- **L1 Norm Loss** for continuous variables:
-
-  $$
-  L1 = \frac{1}{N} \sum_{i=1}^{N} | y_i - \hat{y}_i |
-  $$
-
-- **Mean Squared Error (MSE)**:
-
-  $$
-  MSE = \frac{1}{N} \sum_{i=1}^{N} (y_i - \hat{y}_i)^2
-  $$
+- **L1 Norm Loss** for continuous variable
+- **Mean Squared Error (MSE)**
 
 The losses from multiple MLPs are integrated using a weighted sum:
 
