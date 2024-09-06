@@ -65,7 +65,7 @@ $$
 x_v^\prime = \text{ReLU}\left(\text{BN}\left((1 + \epsilon) \cdot x_v + \sum_{u \in \mathcal{N}(v)} \text{ReLU}(x_u)\right)\right)
 $$
 
-where \( \epsilon \) is a learnable parameter and \( \mathcal{N}(v) \) represents the neighbors of node \( v \).
+where $epsilon$ is a learnable parameter and $mathcal{N}(v)$ represents the neighbors of node $v$.
 
 ## MLP Modules
 
@@ -77,11 +77,11 @@ $$
 
 where:
 - $x$ is the input vector,
-- $\ W_1 \$ and $\ W_2 \$ are the weight matrices,
-- $\ b_1 )$ and $\ b_2 \$ are bias vectors,
-- $\ \phi \$ is the ReLU activation function,
-- $\ B \$ is batch normalization,
-- $\ D \$ is the dropout operation.
+- $W_1$ and $W_2$ are the weight matrices,
+- $b_1$ and $b_2$ are bias vectors,
+- $phi$ is the ReLU activation function,
+- $B$ is batch normalization,
+- $D$ is the dropout operation.
 
 ## Loss Functions
 
