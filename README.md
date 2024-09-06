@@ -91,7 +91,7 @@ We applied different loss strategies for individual prediction heads, which were
 - **Cross-Entropy Loss** for categorical variables:
 
   $$
-  \text{CrossEntropyLoss} = -\sum_{c=1}^{M} y_{o,c} \log(p_{o,c})
+  CrossEntropyLoss = -\sum_{c=1}^{M} y_{o,c} \log(p_{o,c})
   $$
 
 - **L1 Norm Loss** for continuous variables:
@@ -112,7 +112,7 @@ $$
 \text{loss} = \frac{1}{N} \sum_{i=1}^{N} l_i \times \omega_i
 $$
 
-where \( \omega_i \) is the weight for each loss \( l_i \).
+where $\( \omega_i \)$ is the weight for each loss $\( l_i \)$.
 
 ## Model Training and Inference
 
