@@ -24,6 +24,7 @@ import torch.optim as optim
 from torch_geometric.nn import global_mean_pool
 import torch.nn as nn
 
+
 def cox_ph_loss(risk_scores, survival_time, event, alpha=0.5, lambda_reg=1e-4):
     """
     Computes the Cox Proportional Hazards (PH) loss function.
@@ -85,31 +86,30 @@ class GINModelBatchesExp(torch.nn.Module):
     def __init__(self, num_features_exp, hidden_channels, num_classes):
         super(GINModelBatchesExp, self).__init__()
 
-        # GIN Layers
-        self.conv1 = GINConv(
-            torch.nn.Sequential(
-                torch.nn.Linear(num_features_exp, hidden_channels), 
-                torch.nn.ReLU(), 
-                torch.nn.Linear(hidden_channels, hidden_channels)
-            )
-        )
-        self.conv2 = GINConv(
-            torch.nn.Sequential(
-                torch.nn.Linear(hidden_channels, hidden_channels), 
-                torch.nn.ReLU(), 
-                torch.nn.Linear(hidden_channels, hidden_channels)
-            )
-        )
-        self.bn1 = BatchNorm1d(hidden_channels)
-        self.bn2 = BatchNorm1d(hidden_channels)
+        # Expression GIN Conv Layer
+        self.conv1_exp = GINConv(Linear(num_features_exp, hidden_channels), train_eps=True)
+        self.conv2_exp = GINConv(Linear(hidden_channels, hidden_channels), train_eps=True)
 
-        # MLP Prediction Head
+        # Batch norm layer
+        self.bn1 = torch.nn.BatchNorm1d(hidden_channels)
+        self.bn2 = torch.nn.BatchNorm1d(hidden_channels)
+        self.dropout = torch.nn.Dropout(0.5)  # Add dropout for regularization
+
+        # Latent space
+        self.merge = Linear(hidden_channels, hidden_channels)
+
+        # Initiate weights
+        torch.nn.init.xavier_uniform_(self.merge.weight.data)
+
+        # MLP Prediction Class
         self.mlp_class = torch.nn.Sequential(
             torch.nn.Linear(hidden_channels, hidden_channels),
             torch.nn.ReLU(),
-            torch.nn.Dropout(0.5),
+            torch.nn.BatchNorm1d(hidden_channels),
+            torch.nn.Dropout(0.5),  # Add dropout in the MLP as well
             torch.nn.Linear(hidden_channels, num_classes)
         )
+
 
     def forward(self, data):
         """
@@ -122,19 +122,112 @@ class GINModelBatchesExp(torch.nn.Module):
         latent (torch.Tensor): Latent representations of the nodes after GIN convolution.
         class_out (torch.Tensor): Output class predictions.
         """
-        x, edge_index = data.x, data.edge_index
+        exp, edge_index = data.x, data.edge_index
 
-        x = self.conv1(x, edge_index)
-        x = self.bn1(x)
-        x = F.relu(x)
-        x = self.conv2(x, edge_index)
-        x = self.bn2(x)
-        latent = F.relu(x)
+        edge_index, _ = add_self_loops(edge_index, num_nodes=exp.size(0))
+
+        x_exp = self.conv1_exp(exp, edge_index)
+        x_exp = self.dropout(F.leaky_relu(self.bn1(x_exp), negative_slope=0.2))
+
+        x_exp = self.conv2_exp(x_exp, edge_index)
+        x_exp = self.dropout(F.leaky_relu(self.bn2(x_exp), negative_slope=0.2))
+
+        x = self.merge(x_exp)
+        x = F.leaky_relu(x, negative_slope=0.2)
+
+        class_out = self.mlp_class(global_mean_pool(x, data.batch))
+
+        return x, class_out
+
+
+def RunEvaluationGINClass(graph, model):
+    """
+    Runs evaluation for a GIN model on the given graph dataset, providing latent space and class predictions.
+
+    Parameters:
+    graph (torch_geometric.data.DataLoader): The graph dataset.
+    model (torch.nn.Module): The trained GIN model.
+
+    Returns:
+    latent_space (numpy.ndarray): The latent space representation of the data.
+    class_out_logits (numpy.ndarray): The logits for class prediction.
+    class_out_list (numpy.ndarray): The predicted class labels.
+    """
+    model.eval()
+    latent_space = []
+    class_out_logits = []
+    class_out_list = []
+  
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("Running on:", device)
+
+    model.to(device)
+    for data in tqdm(graph, desc="Eval"):
+        latent, class_out = model(data.to(device))
+
+        # Latent space
+        latent_space.append(latent.mean(dim=0, keepdim=True).detach().cpu().numpy())
 
         # Class predictions
-        class_out = self.mlp_class(latent)
+        class_out_logits.append(class_out.detach().cpu().numpy())
+        class_out_list.append(torch.argmax(class_out, dim=1).detach().cpu().numpy())
 
-        return latent, class_out
+    return np.concatenate(latent_space), np.concatenate(class_out_logits), np.concatenate(class_out_list)
+
+
+def RunTrainingGIN(graph, hidden_channels=256, num_classes=11, epochs=50, learning_rate=0.001, batch_size=32):
+    """
+    Trains a GIN model on the given graph dataset.
+
+    Parameters:
+    graph (list): A list of graph data objects for training.
+    hidden_channels (int, optional): Number of hidden channels in the model. Default is 256.
+    num_classes (int, optional): Number of output classes for prediction. Default is 11.
+    epochs (int, optional): Number of training epochs. Default is 50.
+    learning_rate (float, optional): Learning rate for the optimizer. Default is 0.001.
+    batch_size (int, optional): Batch size for data loading. Default is 32.
+
+    Returns:
+    model (torch.nn.Module): The trained GIN model.
+    """
+    num_features_exp = graph[1].x.shape[1]
+
+    model = GINModelBatchesExp(num_features_exp, hidden_channels, num_classes=num_classes)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+    model.train()
+    loader = DataLoader(graph, batch_size=batch_size, shuffle=True)
+    criterion = torch.nn.CrossEntropyLoss()
+
+    epoch_loss_list = []
+    epoch_loss = 0
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("Running on:", device)
+    model = model.to(device)
+
+    for epoch in tqdm(range(epochs), desc="Training"):
+        for data in loader:
+            optimizer.zero_grad()
+            latent, class_out = model(data.to(device))
+
+            # Class
+            gt = data.Class.long()
+            loss = criterion(class_out, gt)
+            loss.backward()
+            optimizer.step()
+            epoch_loss += loss.item()
+
+        epoch_loss /= len(loader)
+        epoch_loss_list.append(epoch_loss)
+
+    plt.close()
+    plt.scatter(range(len(epoch_loss_list)), epoch_loss_list)
+    plt.show()
+    plt.close()
+
+    return model
 
 
 class LinearExp(torch.nn.Module):
@@ -156,7 +249,7 @@ class LinearExp(torch.nn.Module):
         self.mlp_class = torch.nn.Sequential(
             torch.nn.Linear(num_features_exp, hidden_channels),
             torch.nn.ReLU(),
-            torch.nn.Dropout(0.5),
+            torch.nn.Dropout(0.5), 
             torch.nn.Linear(hidden_channels, num_classes)
         )
 
@@ -191,14 +284,15 @@ def RunTrainingLinear(graph, hidden_channels=256, num_classes=11, epochs=50, lea
     Returns:
     model (torch.nn.Module): The trained LinearExp model.
     """
-    
     num_features_exp = graph[1].y.shape[1]
+
     model = LinearExp(num_features_exp, hidden_channels, num_classes=num_classes)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     model.train()
     loader = DataLoader(graph, batch_size=batch_size, shuffle=True)
     criterion = torch.nn.CrossEntropyLoss()
+
     epoch_loss_list = []
     epoch_loss = 0
 
@@ -221,7 +315,6 @@ def RunTrainingLinear(graph, hidden_channels=256, num_classes=11, epochs=50, lea
         epoch_loss /= len(loader)
         epoch_loss_list.append(epoch_loss)
 
-    # Plot loss
     plt.close()
     plt.scatter(range(len(epoch_loss_list)), epoch_loss_list)
     plt.show()
@@ -229,51 +322,6 @@ def RunTrainingLinear(graph, hidden_channels=256, num_classes=11, epochs=50, lea
 
     return model
 
-
-def RunTrainingGIN(graph, hidden_channels = 256, num_classes=11, epochs = 50,learning_rate = 0.001, batch_size=32):
-
-  num_features_exp = graph[1].x.shape[1]
-
-  model = GINModelBatchesExp(num_features_exp, hidden_channels, num_classes=num_classes)
-  optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-
-  model.train()
-  loader = DataLoader(graph, batch_size=batch_size, shuffle=True)
-
-  criterion = torch.nn.CrossEntropyLoss()
-
-  epoch_loss_list = []
-  epoch_loss = 0
-
-  #data = next(iter(loader))
-
-  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-  print("Running on:", device)
-  model = model.to(device)
-
-
-  for epoch in tqdm(range(epochs), desc="Training"):
-    for data in loader:
-        optimizer.zero_grad()
-        latent, class_out = model(data.to(device))
-
-        #Class
-        gt = data.Class.long()
-        loss = criterion(class_out, gt)
-        loss.backward()
-        optimizer.step()
-        epoch_loss += loss.item()
-
-    epoch_loss /= len(loader)
-    epoch_loss_list.append(epoch_loss)
-
-  import matplotlib.pyplot as plt
-  plt.close()
-  plt.scatter(range(len(epoch_loss_list)), epoch_loss_list)
-  plt.show()
-  plt.close()
-
-  return(model)
 
 
 
