@@ -13,131 +13,136 @@ Manuscript will be avaiable soon!
 
 # Graph Neural Networks: NePSTA
 
-## Overview
-
-The graph neural network framework is part of the NePSTA project, which aims to implement deep learning strategies to explore spatially resolved multi-omics data. NePSTA is evaluated on the Visium dataset, and the framework integrates various clinical, histological, and gene expression data to enhance predictive accuracy.
-
 ## Data Split
 
-To assess the performance of NePSTA and comparative methods, the following data partitioning approach was adopted:
+The graph neural network framework is part of the NePSTA project, which aims to implement deep learning strategies to explore spatially resolved multi-omics. To assess the performance of NePSTA ([GitHub – heilandd/NePSTA](https://github.com/heilandd/NePSTA)) and comparative methods, we conducted evaluations on our Visium dataset. The datasets were partitioned into training and evaluation subsets using the following procedure:
 
-### Data Split:
+### Data Split
 
-- From the 107 patients characterized by EPIC, each dataset was divided into training and validation subsets.
-- Samples with multiple biopsies were split by individual biopsy cores.
-- For datasets with a single specimen, the spots were manually segmented using the `createSegmentation` function of the `SPATA2` package.
+From 107 patients characterized by EPIC, each dataset was split into training and validation segments. In samples with multiple biopsies, the dataset was split by individual biopsy cores. For single-specimen datasets, we segmented the spots manually using the `createSegmentation` function from the `SPATA2` package.
 
-### Training Dataset Construction:
+### Training Dataset Construction
 
-- The training dataset, implemented using the PyTorch Geometric library, included up to 500 subgraphs per training split. 
-- Clinical attributes such as tumor type (RTKI, RTKII, MES, etc.) and histological region were incorporated.
-- The resulting training set comprised 97,000 subgraphs, including 12,000 subgraphs from healthy controls.
+We created the training dataset using the PyTorch Geometric library, selecting up to 500 subgraphs from the training split. Clinical attributes, such as tumor type (RTKI, RTKII, MES, etc.) and histological region, were included. This yielded a comprehensive training set of 97,000 subgraphs, including 12,000 subgraphs from healthy controls.
 
-### Evaluation Dataset Construction:
+### Evaluation Dataset Construction
 
-- For evaluation, validation datasets covered a spectrum of epigenetic classes. 
-- From each dataset, up to 500 subgraphs were extracted using the 3-hop method.
+For evaluation, we used the validation datasets covering a spectrum of epigenetic classes. From each, we extracted up to 500 subgraphs using the 3-hop method.
 
 ## Evaluation Metrics
 
-In evaluating the performance of NePSTA, we employed several metrics:
+In the evaluation of our graph-neural network (GNN), we employed a set of metrics to assess classification performance in predicting clinical and histological parameters.
 
-- **Accuracy**: The proportion of correct predictions among the total predictions:
-  \[
+- **Accuracy**:
+  
+  $$
   \text{Accuracy} = \frac{\text{Number of Correct Predictions}}{\text{Total Number of Predictions}}
-  \]
+  $$
 
-- **Precision** (macro-average): The ratio of true positive predictions to the total number of positive predictions:
-  \[
+- **Precision** (macro-average):
+  
+  $$
   \text{Precision}_{\text{macro}} = \frac{1}{N} \sum_{i=1}^{N} \frac{TP_i}{TP_i + FP_i}
-  \]
+  $$
 
-- **Recall** (macro-average): The ratio of true positive predictions to the total number of actual positives:
-  \[
+- **Recall** (macro-average):
+
+  $$
   \text{Recall}_{\text{macro}} = \frac{1}{N} \sum_{i=1}^{N} \frac{TP_i}{TP_i + FN_i}
-  \]
+  $$
 
-- **F1 Score** (macro-average): The harmonic mean of precision and recall:
-  \[
+- **F1 Score** (macro-average):
+
+  $$
   \text{F1 Score}_{\text{macro}} = 2 \times \frac{\text{Precision}_{\text{macro}} \times \text{Recall}_{\text{macro}}}{\text{Precision}_{\text{macro}} + \text{Recall}_{\text{macro}}}
-  \]
+  $$
 
-- **Confusion Matrix**: A detailed breakdown of true positives, true negatives, false positives, and false negatives across different classes.
+Additionally, the confusion matrix was presented, offering a detailed breakdown of the model's predictions across different classes, showing true positives, true negatives, false positives, and false negatives.
 
 ## NePSTA Graph-Neural Network Architecture
 
-The NePSTA prediction network consists of a **Graph Isomorphism Network (GIN)** backbone, with multiple **multilayer perceptron (MLP)** heads selected based on the prediction tasks. Below are the input features and their respective structures.
+The NePSTA prediction network consists of a **Graph Isomorphism Network (GIN)** backbone and multiple **Multilayer Perceptron (MLP)** prediction heads, selected based on defined prediction tasks. NePSTA processes the local spatial graphical structures of gene expression values derived from the 3-hop neighborhood of Visium spots.
 
 ### Node Features
 
-- **Expression Data**: Encapsulated in an \( N \times G \) matrix, where \( N \) is the number of nodes and \( G \) represents genes. Non-expressed genes (zero counts) are masked to avoid skewing.
-- **Copy Number Alterations**: Represented by an \( N \times C \) matrix, where \( C \) contains chromosomal alterations.
-- **Histological Annotations**: Represented by an \( N \times A \) matrix with one-hot encoded histological classifications.
-- **H&E Images**: Encoded into a vector through a **Convolutional Neural Network (CNN)** from a \( 256 \times 256 \) pixel image.
+- **Expression Data**: Encapsulated in an \(N \times G\) matrix (where \(N\) is the number of nodes and \(G\) represents the set of genes). These features are derived from the log-scaled, normalized expression values of the top 5000 most variably expressed genes in the cohort.
+  
+- **Copy Number Alterations**: Encapsulated in an \(N \times C\) matrix (where \(C\) contains chromosomal alterations).
+
+- **Histological Annotations**: Encapsulated in an \(N \times A\) matrix with one-hot encoded histological classifications.
+
+- **H&E Images**: Encoded using a **Convolutional Neural Network (CNN)** designed to process a \(256 \times 256\) image into an \(N\)-length vector.
 
 ### Edge Features
 
-- Each node connects to up to six neighbors, reflecting the spatial arrangement. Subgraphs with fewer than 15 nodes are excluded for complexity control. Self-loops are incorporated for each node to retain its original feature information during message passing.
+Each node has up to six neighbors, reflecting spatial arrangement. Self-loops (each node connected to itself) are incorporated, allowing each node to retain its original feature information during message passing.
 
 ### GIN Layers
 
-The GIN convolution operation updates node features by aggregating features from neighboring nodes:
-\[
+GIN convolution updates node features by aggregating information from neighboring nodes:
+
+$$
 x_v^\prime = \text{ReLU}\left(\text{BN}\left((1 + \epsilon) \cdot x_v + \sum_{u \in \mathcal{N}(v)} \text{ReLU}(x_u)\right)\right)
-\]
-where \( \epsilon \) is a learnable parameter and \( \mathcal{N}(v) \) is the set of neighbors of node \( v \).
+$$
 
-### MLP Modules
+where \( \epsilon \) is a learnable parameter and \( \mathcal{N}(v) \) represents the neighbors of node \( v \).
 
-Each MLP module consists of a linear layer, ReLU activation, batch normalization, dropout, and a final linear layer that outputs predictions:
-\[
+## MLP Modules
+
+Each MLP consists of a linear layer, ReLU activation, batch normalization, dropout, and a final linear layer that outputs predictions:
+
+$$
 h(x) = W_2 \cdot D \cdot B \cdot \phi(W_1 \cdot x + b_1) + b_2
-\]
+$$
+
 where:
 - \( x \) is the input vector,
-- \( W_1 \) and \( W_2 \) are weight matrices,
+- \( W_1 \) and \( W_2 \) are the weight matrices,
 - \( b_1 \) and \( b_2 \) are bias vectors,
 - \( \phi \) is the ReLU activation function,
-- \( B \) represents batch normalization, and
-- \( D \) represents dropout.
+- \( B \) is batch normalization,
+- \( D \) is the dropout operation.
 
 ## Loss Functions
 
-NePSTA uses different loss strategies depending on the prediction task:
+We applied different loss strategies for individual prediction heads, which were integrated based on the task.
 
 - **Cross-Entropy Loss** for categorical variables:
-  \[
+
+  $$
   \text{CrossEntropyLoss} = -\sum_{c=1}^{M} y_{o,c} \log(p_{o,c})
-  \]
+  $$
 
 - **L1 Norm Loss** for continuous variables:
-  \[
-  L1 = \frac{1}{N} \sum_{i=1}^{N} \left| y_i - \widehat{y_i} \right|
-  \]
+
+  $$
+  L1 = \frac{1}{N} \sum_{i=1}^{N} | y_i - \hat{y}_i |
+  $$
 
 - **Mean Squared Error (MSE)**:
-  \[
-  MSE = \frac{1}{N} \sum_{i=1}^{N} \left( y_i - \widehat{y_i} \right)^2
-  \]
 
-The losses from multiple MLPs are combined as a weighted sum:
-\[
+  $$
+  MSE = \frac{1}{N} \sum_{i=1}^{N} (y_i - \hat{y}_i)^2
+  $$
+
+The losses from multiple MLPs are integrated using a weighted sum:
+
+$$
 \text{loss} = \frac{1}{N} \sum_{i=1}^{N} l_i \times \omega_i
-\]
-where \( \omega_i \) is the weight assigned to each loss \( l_i \).
+$$
+
+where \( \omega_i \) is the weight for each loss \( l_i \).
 
 ## Model Training and Inference
 
-The model is trained over several epochs, iterating through batches of data. The training process involves:
-1. Resetting the optimizer's gradients.
-2. Performing a forward pass to generate predictions.
-3. Calculating loss (using the L1 norm for neuron scores).
-4. Backpropagating the loss to compute gradients.
-5. Adjusting model weights to minimize loss using the Adam optimizer.
+The model was trained over multiple epochs, iterating through data batches. The optimizer’s gradients were reset before each forward pass. The model then generated predictions, calculated losses, and adjusted weights using the **Adam optimizer** to minimize losses. Various tasks, including survival predictions and neuron score predictions, were performed with corresponding losses optimized accordingly.
+
 
 ## Code use
 We recommend to use the NEePSTA algorithm as presented in the Jupiter notebook. The notbook is optimized for Colab use including instalation of the required dependencies. No further installations are required. The source code .py files (required in the notebook) can be accesed here. 
 
+## Dataset
+The training dataset can be downloaded:  (24
 
 ## Licences Information
 This program is free software: you can redistribute it and/or modify
