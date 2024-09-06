@@ -46,7 +46,7 @@ The NePSTA prediction network consists of a **Graph Isomorphism Network (GIN)** 
 
 ### Node Features
 
-- **Expression Data**: Encapsulated in an \(N \times G\) matrix (where \(N\) is the number of nodes and \(G\) represents the set of genes). These features are derived from the log-scaled, normalized expression values of the top 5000 most variably expressed genes in the cohort.
+- **Expression Data**: Encapsulated in an $\(N \times G\)$ matrix (where $\(N\)$ is the number of nodes and \(G\) represents the set of genes). These features are derived from the log-scaled, normalized expression values of the top 5000 most variably expressed genes in the cohort.
   
 - **Copy Number Alterations**: Encapsulated in an \(N \times C\) matrix (where \(C\) contains chromosomal alterations).
 
