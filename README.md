@@ -11,6 +11,9 @@ The diagnostic landscape of brain tumors has recently evolved to integrate compr
 
 Manuscript will be avaiable soon!
 
+Test the model in colab:
+https://colab.research.google.com/github/heilandd/NePSTA/blob/main/notebook.ipynb
+
 # Graph Neural Networks: NePSTA
 
 ### Training Dataset Construction
