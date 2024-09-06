@@ -28,7 +28,7 @@ For evaluation, we used the validation datasets to cover a spectrum of epigeneti
 ## Evaluation Metrics
 
 In evaluating our graph-neural network (GNN), we employed several metrics to assess classification performance in predicting clinical and histological parameters.
-
+$$
 - **Accuracy**: Measures the overall correctness of the model:
   \[
   \text{Accuracy} = \frac{\text{Number of Correct Predictions}}{\text{Total Number of Predictions}}
@@ -48,7 +48,7 @@ In evaluating our graph-neural network (GNN), we employed several metrics to ass
   \[
   \text{F1 Score}_{\text{macro}} = 2 \times \frac{\text{Precision}_{\text{macro}} \times \text{Recall}_{\text{macro}}}{\text{Precision}_{\text{macro}} + \text{Recall}_{\text{macro}}}
   \]
-
+$$
 Additionally, we presented the confusion matrix, providing a detailed breakdown of the model's predictions across different classes.
 
 ## NePSTA Graph-Neural Network Architecture
