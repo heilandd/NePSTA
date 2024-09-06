@@ -33,30 +33,10 @@ For evaluation, we used the validation datasets covering a spectrum of epigeneti
 
 In the evaluation of our graph-neural network (GNN), we employed a set of metrics to assess classification performance in predicting clinical and histological parameters.
 
-- **Accuracy**:
-  
-  $$
-  \text{Accuracy} = \frac{\text{Number of Correct Predictions}}{\text{Total Number of Predictions}}
-  $$
-
-- **Precision** (macro-average):
-  
-  $$
-  \text{Precision}_{\text{macro}} = \frac{1}{N} \sum_{i=1}^{N} \frac{TP_i}{TP_i + FP_i}
-  $$
-
-- **Recall** (macro-average):
-
-  $$
-  \text{Recall}_{\text{macro}} = \frac{1}{N} \sum_{i=1}^{N} \frac{TP_i}{TP_i + FN_i}
-  $$
-
-- **F1 Score** (macro-average):
-
-  $$
-  \text{F1 Score}_{\text{macro}} = 2 \times \frac{\text{Precision}_{\text{macro}} \times \text{Recall}_{\text{macro}}}{\text{Precision}_{\text{macro}} + \text{Recall}_{\text{macro}}}
-  $$
-
+- **Accuracy**
+- **Precision** 
+- **Recall** 
+- **F1 Score** 
 Additionally, the confusion matrix was presented, offering a detailed breakdown of the model's predictions across different classes, showing true positives, true negatives, false positives, and false negatives.
 
 ## NePSTA Graph-Neural Network Architecture
@@ -96,12 +76,12 @@ h(x) = W_2 \cdot D \cdot B \cdot \phi(W_1 \cdot x + b_1) + b_2
 $$
 
 where:
-- $\( x \)$ is the input vector,
-- \( W_1 \) and \( W_2 \) are the weight matrices,
-- \( b_1 \) and \( b_2 \) are bias vectors,
-- \( \phi \) is the ReLU activation function,
-- \( B \) is batch normalization,
-- \( D \) is the dropout operation.
+- $\ x \$ is the input vector,
+- $\ W_1 \$ and $\ W_2 \$ are the weight matrices,
+- $\ b_1 )$ and $\ b_2 \$ are bias vectors,
+- $\ \phi \$ is the ReLU activation function,
+- $\ B \$ is batch normalization,
+- $\ D \$ is the dropout operation.
 
 ## Loss Functions
 
