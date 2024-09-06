@@ -96,7 +96,7 @@ h(x) = W_2 \cdot D \cdot B \cdot \phi(W_1 \cdot x + b_1) + b_2
 $$
 
 where:
-- \( x \) is the input vector,
+- $\( x \)$ is the input vector,
 - \( W_1 \) and \( W_2 \) are the weight matrices,
 - \( b_1 \) and \( b_2 \) are bias vectors,
 - \( \phi \) is the ReLU activation function,
@@ -142,7 +142,7 @@ The model was trained over multiple epochs, iterating through data batches. The 
 We recommend to use the NEePSTA algorithm as presented in the Jupiter notebook. The notbook is optimized for Colab use including instalation of the required dependencies. No further installations are required. The source code .py files (required in the notebook) can be accesed here. 
 
 ## Dataset
-The training dataset can be downloaded:  (24
+The training dataset can be [Download here](https://drive.google.com/uc?export=download&id=1HQ1-QfBCkRSmBtuu8Zq8YqZu1tatDu01) (~25Gb)
 
 ## Licences Information
 This program is free software: you can redistribute it and/or modify
