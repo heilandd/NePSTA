@@ -76,7 +76,7 @@ h(x) = W_2 \cdot D \cdot B \cdot \phi(W_1 \cdot x + b_1) + b_2
 $$
 
 where:
-- $\ x \$ is the input vector,
+- $ \ x \ $ is the input vector,
 - $\ W_1 \$ and $\ W_2 \$ are the weight matrices,
 - $\ b_1 )$ and $\ b_2 \$ are bias vectors,
 - $\ \phi \$ is the ReLU activation function,
