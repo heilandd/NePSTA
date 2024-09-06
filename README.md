@@ -37,6 +37,7 @@ In the evaluation of our graph-neural network (GNN), we employed a set of metric
 - **Precision** 
 - **Recall** 
 - **F1 Score** 
+
 Additionally, the confusion matrix was presented, offering a detailed breakdown of the model's predictions across different classes, showing true positives, true negatives, false positives, and false negatives.
 
 ## NePSTA Graph-Neural Network Architecture
@@ -65,7 +66,7 @@ $$
 x_v^\prime = \text{ReLU}\left(\text{BN}\left((1 + \epsilon) \cdot x_v + \sum_{u \in \mathcal{N}(v)} \text{ReLU}(x_u)\right)\right)
 $$
 
-where $epsilon$ is a learnable parameter and $mathcal{N}(v)$ represents the neighbors of node $v$.
+where $\epsilon$ is a learnable parameter and $mathcal{N}(v)$ represents the neighbors of node $v$.
 
 ## MLP Modules
 
