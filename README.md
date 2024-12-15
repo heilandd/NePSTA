@@ -106,6 +106,9 @@ We recommend to use the NEePSTA algorithm as presented in the Jupiter notebook. 
 ## Dataset
 The training dataset can be [Download here](https://drive.google.com/uc?export=download&id=1HQ1-QfBCkRSmBtuu8Zq8YqZu1tatDu01) (~25Gb)
 
+## Get more information:
+[Download here](https://github.com/heilandd/NePSTA/blob/main/Supplementary%20Information%20Github.pdf) 
+
 ## Licences Information
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
